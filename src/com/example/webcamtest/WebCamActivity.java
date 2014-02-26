@@ -6,6 +6,7 @@ import java.util.List;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.res.Configuration;
+import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
@@ -138,16 +139,22 @@ public class WebCamActivity extends Activity
 		
 		mCamera.setParameters(params);
 		
-		mCamera.setPreviewCallback(new PreviewCallback() 
+		int bitsPerPixel = ImageFormat.getBitsPerPixel(params.getPreviewFormat());
+		Camera.Size camSize = params.getPreviewSize();
+		int frameSize = camSize.width * camSize.height * bitsPerPixel / 8;
+		byte[] frame = new byte[frameSize];
+		mCamera.addCallbackBuffer(frame);
+				
+		mCamera.setPreviewCallbackWithBuffer(new PreviewCallback() 
 		{
 			@Override
 			public void onPreviewFrame(byte[] data, Camera camera) 
 			{
-				Log.d(TAG, "onPreviewFrame: data=" + data);
 				if (data == null || data.length == 0)
 					return;
 
                 WebControlManager.getInstance().addFrame(data, camera);
+                mCamera.addCallbackBuffer(data);
 			}
 		});
 		
