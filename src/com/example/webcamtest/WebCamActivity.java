@@ -121,7 +121,7 @@ public class WebCamActivity extends Activity
 			Log.d(TAG, "preview: supported framerate=" + previewFrameRates.get(i).toString());
 		}
 		
-		params.setPreviewSize(480, 320);
+		params.setPreviewSize(800, 480);
 //		params.setPreviewFrameRate(10);
 		
 		// 横竖屏镜头自动调整
@@ -142,8 +142,8 @@ public class WebCamActivity extends Activity
 		int bitsPerPixel = ImageFormat.getBitsPerPixel(params.getPreviewFormat());
 		Camera.Size camSize = params.getPreviewSize();
 		int frameSize = camSize.width * camSize.height * bitsPerPixel / 8;
-		byte[] frame = new byte[frameSize];
-		mCamera.addCallbackBuffer(frame);
+		mCamera.addCallbackBuffer(new byte[frameSize]);
+		mCamera.addCallbackBuffer(new byte[frameSize]);
 				
 		mCamera.setPreviewCallbackWithBuffer(new PreviewCallback() 
 		{
