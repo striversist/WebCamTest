@@ -9,6 +9,7 @@ import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
+import android.hardware.Camera.Parameters;
 import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
@@ -37,6 +38,7 @@ public class MainActivity extends Activity implements ServiceConnection
 	private SurfaceHolder mSurfaceHolder;
 	private Camera mCamera;
 	private int mCurrentCameraIndex;
+	private boolean mIsFlashOn;
 	private MediaRecorder mRecorder;
 	private IRemoteRequest mRemoteRequest;
 	
@@ -52,6 +54,7 @@ public class MainActivity extends Activity implements ServiceConnection
 		mSurfaceView = (SurfaceView) findViewById(R.id.surface_view);
 		mRecorder = new MediaRecorder();
 		mCurrentCameraIndex = 0;
+		mIsFlashOn = false;
 		start();
 		
 		Log.d(TAG, "process id=" + android.os.Process.myPid());
@@ -83,6 +86,9 @@ public class MainActivity extends Activity implements ServiceConnection
 				break;
 			case R.id.toggle_camera_btn:
 				toggleCamera();
+				break;
+			case R.id.toggle_flash_btn:
+				toggleFlash();
 				break;
 		}
 	}
@@ -324,6 +330,25 @@ public class MainActivity extends Activity implements ServiceConnection
 			preview(1);
 		else
 			preview(0);
+	}
+	
+	private void toggleFlash()
+	{
+		if (mCamera == null)
+			return;
+		
+		Parameters params = mCamera.getParameters();
+		if (mIsFlashOn)
+		{
+			params.setFlashMode(Parameters.FLASH_MODE_OFF);
+			mIsFlashOn = false;
+		}
+		else
+		{
+			params.setFlashMode(Parameters.FLASH_MODE_TORCH);
+			mIsFlashOn = true;
+		}
+		mCamera.setParameters(params);
 	}
 	
 	@Override

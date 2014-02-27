@@ -15,5 +15,6 @@
     <string name="title_activity_web_cam">WebCamActivity</string>
     <string name="start_webcam">开启WebCam</string>
     <string name="toggle_camera">切换摄像头</string>
+    <string name="toggle_flash">切换闪光灯</string>
 
 </resources>
