@@ -14,17 +14,11 @@ public class TestAidlService extends Service {
     private final IRemoteRequest.Stub mBinder = new IRemoteRequest.Stub() {
         
     	private boolean mRunning;
-//        MyHttpAdapter mHttpAdapter;
+
         String mIpInfo = null;
         @Override
         public String startLocalService() throws RemoteException {
         	Log.i("test", "aidl -> stopLocalService");
-//            if (mHttpAdapter == null) {
-//                loadLibrary();
-//                Log.i("test", "aidl -> startLocalService Start");
-//                mHttpAdapter = new MyHttpAdapter();
-//                mIpInfo = mHttpAdapter.Start(getApplicationContext());
-//            }
         	
         	if (!mRunning)
         	{
@@ -39,13 +33,7 @@ public class TestAidlService extends Service {
         public void stopLocalService() throws RemoteException {
         	Log.i("test", "aidl -> stopLocalService");
         	mIpInfo = null;
-//        	if (mHttpAdapter != null) {
-//        		Log.w("test", "aidl -> mHttpAdapter Stop");
-//        		mHttpAdapter.Stop();
-//        		mHttpAdapter.Destroy();
-//        		mHttpAdapter = null;
-//        	}
-            
+
         	if (mRunning)
         	{
         		WebControlManager.getInstance().stop();
@@ -55,9 +43,6 @@ public class TestAidlService extends Service {
         
         @Override
         public String getIpInfo() throws RemoteException {
-//            if (mHttpAdapter != null) {
-//                return mIpInfo;
-//            }
         	if (mRunning)
         		return mIpInfo;
             return null;
