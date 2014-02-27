@@ -13,10 +13,12 @@ import android.hardware.Camera.PictureCallback;
 import android.hardware.Camera.PreviewCallback;
 import android.hardware.Camera.Size;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -34,6 +36,7 @@ public class MainActivity extends Activity implements ServiceConnection
 	private SurfaceView mSurfaceView;
 	private SurfaceHolder mSurfaceHolder;
 	private Camera mCamera;
+	private int mCurrentCameraIndex;
 	private MediaRecorder mRecorder;
 	private IRemoteRequest mRemoteRequest;
 	
@@ -48,6 +51,7 @@ public class MainActivity extends Activity implements ServiceConnection
 		
 		mSurfaceView = (SurfaceView) findViewById(R.id.surface_view);
 		mRecorder = new MediaRecorder();
+		mCurrentCameraIndex = 0;
 		start();
 		
 		Log.d(TAG, "process id=" + android.os.Process.myPid());
@@ -76,6 +80,9 @@ public class MainActivity extends Activity implements ServiceConnection
 				break;
 			case R.id.start_webcam:
 				startWebCam();
+				break;
+			case R.id.toggle_camera_btn:
+				toggleCamera();
 				break;
 		}
 	}
@@ -122,8 +129,20 @@ public class MainActivity extends Activity implements ServiceConnection
 	
 	private void preview()
 	{
+		preview(0);
+	}
+	
+	@TargetApi(Build.VERSION_CODES.GINGERBREAD)
+	private void preview(int cameraIndex)
+	{
 		if (mCamera == null)
-			mCamera = Camera.open();
+		{
+			if (android.os.Build.VERSION.SDK_INT > 8)
+				mCamera = Camera.open(cameraIndex);
+			else
+				mCamera = Camera.open();
+			mCurrentCameraIndex = cameraIndex;
+		}
 
 		if (mCamera == null)
 		{
@@ -172,7 +191,7 @@ public class MainActivity extends Activity implements ServiceConnection
 			@Override
 			public void onPreviewFrame(byte[] data, Camera camera) 
 			{
-				Log.d(TAG, "onPreviewFrame: data.length=" + data.length);
+//				Log.d(TAG, "onPreviewFrame: data.length=" + data.length);
 				if (data.length == 0)
 					return;
 
@@ -189,7 +208,7 @@ public class MainActivity extends Activity implements ServiceConnection
                         img.compressToJpeg(new Rect(0, 0, img.getWidth(), img.getHeight()), 80, outputStream);
                         
                         String picString = outputStream.toString();
-                        Log.d(TAG, "preview: picString.length=" + picString.length());
+//                        Log.d(TAG, "preview: picString.length=" + picString.length());
                         Log.i("autopic", "ok!");
                     } 
                     catch (Exception e) 
@@ -295,6 +314,16 @@ public class MainActivity extends Activity implements ServiceConnection
 		{
 			e.printStackTrace();
 		}
+	}
+	
+	private void toggleCamera()
+	{
+		stop();
+		
+		if (mCurrentCameraIndex == 0)
+			preview(1);
+		else
+			preview(0);
 	}
 	
 	@Override
