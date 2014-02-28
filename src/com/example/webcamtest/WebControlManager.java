@@ -26,7 +26,9 @@ public class WebControlManager extends HttpAdapter
 	private List<byte[]> mImageList;
 	private final int MAX_LIST_ITEM = 3;
 	private EncoderThread mEncoderThread;
+	private ResponseThread mResponseThread;
 	private Handler mEncoderHandler;
+	private Handler mResponseHandler;
 	
 	public static WebControlManager getInstance()
 	{
@@ -40,8 +42,11 @@ public class WebControlManager extends HttpAdapter
 		mImageList = new ArrayList<byte[]>(MAX_LIST_ITEM);
 		mEncoderThread = new EncoderThread("encoder");
 		mEncoderThread.start();
-		
 		mEncoderHandler = new Handler(mEncoderThread.getLooper(), mEncoderThread);
+		
+		mResponseThread = new ResponseThread("response");
+		mResponseThread.start();
+		mResponseHandler = new Handler(mResponseThread.getLooper(), mResponseThread);
 	}
 	
 	public String start(Context context)
@@ -77,35 +82,10 @@ public class WebControlManager extends HttpAdapter
 	protected void OnHttpRequest(byte[] req, String current)	
 	{	
 		HttpRequest hreq = new HttpRequest(req);
-	
 		Log.d("HttpAdapter", "OnHttpRequest, url:" + hreq.GetRequestUrl() + ", current:" + current);
-	
-		HttpResponse hrsp = new HttpResponse();
-//		hrsp.SetHeader("Connection", "close");
-		
-		byte[] data = null;
-		synchronized (mImageList) 
-		{
-			if (!mImageList.isEmpty())
-			{
-				data = mImageList.remove(0);
-			}
-		}
-		
-		if (data != null)
-		{
-			hrsp.SetContent(data);
-	        hrsp.SetHeader("Connection", "Keep-Alive");
-	        hrsp.SetHeader("Content-Length", String.valueOf(data.length));
-	        hrsp.SetHeader("Content-Type", "image/jpeg");
-	        hrsp.SetHeader("Cache-control", "no-cache");
-	        Log.d("HttpAdapter", "Set header OK, list.size=" + mImageList.size() + ", jpg length=" + String.valueOf(data.length));
-		}
-		
-		SendHttpResponse(hrsp.Encode(), current);
-		
 		hreq.Destroy();
-		hrsp.Destroy();
+
+		mResponseHandler.obtainMessage(ResponseThread.MSG_VIDEO_RESPONSE, current).sendToTarget();	
 	}
 	
 	private class EncoderThread extends HandlerThread implements Callback
@@ -139,5 +119,55 @@ public class WebControlManager extends HttpAdapter
 			
 			return true;
 		}
+	}
+	
+	private class ResponseThread extends HandlerThread implements Callback
+	{
+		public static final int MSG_VIDEO_RESPONSE = 0;
+		public ResponseThread(String name) 
+		{
+			super(name);
+		}
+
+		@Override
+		public boolean handleMessage(Message msg) 
+		{
+			switch (msg.what) 
+			{
+				case MSG_VIDEO_RESPONSE:
+					byte[] data = null;
+					synchronized (mImageList) 
+					{
+						if (!mImageList.isEmpty())
+						{
+							data = mImageList.remove(0);
+						}
+					}
+					if (data == null && msg.arg1 < 2)
+					{
+						Message newMsg = new Message();
+						newMsg.copyFrom(msg);
+						newMsg.arg1 += 1;	// Delay times
+						mResponseHandler.sendMessageDelayed(newMsg, 80);
+					}
+					else
+					{
+						String current = (String) msg.obj;
+						HttpResponse hrsp = new HttpResponse();
+						hrsp.SetContent(data);
+				        hrsp.SetHeader("Connection", "Keep-Alive");
+				        hrsp.SetHeader("Content-Length", String.valueOf(data.length));
+				        hrsp.SetHeader("Content-Type", "image/jpeg");
+				        hrsp.SetHeader("Cache-Control", "no-cache");
+				        Log.d("HttpAdapter", "Set header OK, list.size=" + mImageList.size() + ", jpg length=" + String.valueOf(data.length));
+						
+						SendHttpResponse(hrsp.Encode(), current);
+						hrsp.Destroy();
+					}
+					break;
+			}
+			return true;
+		}
+		
 	}
 }
