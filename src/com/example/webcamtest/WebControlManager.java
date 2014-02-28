@@ -145,8 +145,7 @@ public class WebControlManager extends HttpAdapter
 					}
 					if (data == null && msg.arg1 < 2)
 					{
-						Message newMsg = new Message();
-						newMsg.copyFrom(msg);
+						Message newMsg = mResponseHandler.obtainMessage(msg.what, msg.arg1, msg.arg2, msg.obj);
 						newMsg.arg1 += 1;	// Delay times
 						mResponseHandler.sendMessageDelayed(newMsg, 80);
 					}
