@@ -1,0 +1,38 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+	<style type="text/css">
+		#camera {-moz-transform:rotate(90deg); -webkit-transform:rotate(90deg); transform:rotate(90deg); filter:progid:DXImageTransform.Microsoft.BasicImage(rotation=1);}
+	</style>
+	<script src="jquery.min.js"></script>
+	<script src="jquery.rotate.1-1.js"></script>
+    <title>test</title>
+    <script type="text/javascript">
+		var timer;
+    	function reImg()
+		{
+			var myDate = new Date()
+    		var img = document.getElementById("camera");
+			img.src = "http://192.168.1.109:8080/" + "?dd=" + myDate.getTime();
+			//img.src = "http://192.168.1.109:8888/sdctl/camera/frame/?dd=1393243416000&7bb=7f396f22e8658ddb801ecd4bcbfff35a";
+    	}
+		
+		function start()
+		{
+			timer = setInterval("reImg()", 90);
+		}
+		function stop()
+		{
+			clearInterval(timer);
+		}
+    </script>
+  </head>
+  
+  <body>
+	<center>
+		<img id="camera" style="filter:FlipV" src="http://www.w3school.com.cn/i/eg_tulip.jpg" />
+		<a href="#" onclick="start();">¿ªÊ¼</a>
+		<a href="#" onclick="stop();">Í£Ö¹</a>
+	</center>
+  </body>
+</html>
